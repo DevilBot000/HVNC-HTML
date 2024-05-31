@@ -1,5 +1,9 @@
 # HVNC-HTML
 
+<a href="https://ibb.co/d4NB0D2"><img src="https://i.ibb.co/MkznD7V/Untitled.png" alt="Untitled" border="0"></a>
+
+<a href="https://ibb.co/mX2Scf9"><img src="https://i.ibb.co/LJcvZVx/Untitle.png" alt="Untitle" border="0"></a>
+
 Outside of writing this article I have changed the HVNC code slightly, here is a list of what was changed in the code:
 
 All functions in the client were converted to asynchronous operation, this helped the broadcast, since previously screenshots were not displayed on the broadcast in order one after another, but were confused and sometimes frames were shown that had already passed a long time ago. Now the broadcast works correctly.
